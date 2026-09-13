@@ -337,6 +337,83 @@ export default function SuspectsPage() {
 }
 ```
 
+### JobPosting
+
+For a real, currently-open job on a careers/jobs page. This markup is the only way into
+Google's job search experience (the job cards and the Jobs aggregator), and it is the one
+content type where Google's [Indexing API](https://developers.google.com/search/apis/indexing-api/v3/using-api)
+is sanctioned — it accepts `JobPosting` and `BroadcastEvent` pages and nothing else, so a
+site that ships a jobs page changes its eligibility for that API from "no" to "possible".
+
+```json
+{
+  "@context": "https://schema.org",
+  "@type": "JobPosting",
+  "title": "Commission-Only Sales Partner",
+  "description": "<p>Full description as HTML: responsibilities, qualifications, hours, compensation.</p>",
+  "datePosted": "2026-09-10",
+  "validThrough": "2026-12-31T23:59",
+  "employmentType": "CONTRACTOR",
+  "hiringOrganization": {
+    "@type": "Organization",
+    "name": "Company Name",
+    "sameAs": "https://example.com"
+  },
+  "identifier": {
+    "@type": "PropertyValue",
+    "name": "Company Name",
+    "value": "sales-partner-2026"
+  },
+  "jobLocationType": "TELECOMMUTE",
+  "applicantLocationRequirements": {
+    "@type": "Country",
+    "name": "USA"
+  },
+  "directApply": true
+}
+```
+
+**Required:** `title` (the job, not the page title), `description` (the complete job in
+HTML — responsibilities, qualifications, skills, hours, requirements; it must not just
+repeat the title), `datePosted`, and `hiringOrganization` (the company name, not a
+specific branch). `jobLocation` is required as well — **unless** the role is fully remote,
+in which case `jobLocationType: "TELECOMMUTE"` plus `applicantLocationRequirements`
+replaces it. A `TELECOMMUTE` posting with no applicant location requirement is invalid.
+
+**Recommended, and load-bearing in practice:**
+
+- `validThrough` — the expiry date. Google drops a posting when it expires; without
+  `validThrough` nothing expires it, so a filled role keeps advertising itself. That is
+  both a content-policy problem (expired jobs) and a candidate-experience one. Set it, and
+  update or unpublish the page when the role closes.
+- `baseSalary` — the employer's **actual** figure, never an estimate or a range you hope
+  to pay. `baseSalary` means base pay, so a **commission-only role omits it**: a
+  percentage-of-net-revenue plan is not a base salary, and marking one up to satisfy a
+  "recommended" field publishes a guaranteed number that isn't guaranteed. Put the comp
+  plan in the visible description instead.
+- `employmentType`, `identifier`, `jobStartDate`, `jobBenefits`, `experienceRequirements`,
+  `educationRequirements`, `jobLocationType`.
+- `directApply: true` when the page's own form takes the application rather than handing
+  off to a third-party ATS.
+
+**Eligibility rules:**
+
+- **One posting per page.** A page listing several openings, or a search/filter results
+  page, is not eligible — each job needs its own URL with its own markup.
+- **Markup must match visible content.** The description, location, salary and title in the
+  JSON-LD must be on the page, same as any other schema type.
+- **Expired postings must go.** Remove the page or let `validThrough` pass; leaving old
+  jobs live risks the rich result and, at scale, a manual action.
+- **Aggregators and staffing sites** have their own additional requirements — this section
+  covers an employer posting its own role.
+
+**Do not noindex the URL that carries the `JobPosting`** — an unindexable posting cannot be
+shown. If the application form lives on its own URL (a common `/jobs/apply` split), decide
+that page's indexation deliberately: it is indexable only if it carries content worth
+ranking, and if you mark it `noindex` you must also remove it from the sitemap (a
+`noindex` URL left in a sitemap is the "Submitted URL marked noindex" error). Keep the
+form page crawlable either way — `noindex, follow` is fine; a `robots.txt` disallow is not.
+
 ### VideoObject
 
 ```json
@@ -501,4 +578,6 @@ Use JSON-LD format. Validate through Naver Search Advisor's built-in tools.
 | Stale data (wrong price, old dates) | Rich result removal | Keep structured data in sync with page content |
 | Only validating with Google | Missed errors on Bing/Yandex | Validate with all three tools |
 | Misleading structured data | Bing may ignore and reduce trust; Google may issue manual action | Markup must accurately reflect visible content |
+| `JobPosting` left live after the role closed | Expired-job policy issue; rich result removal | Set `validThrough`, then update or remove the page |
+| Estimated or invented `baseSalary` | Inaccurate listings, trust/policy risk | Mark up the employer's actual figure, or omit it (commission-only roles) |
 

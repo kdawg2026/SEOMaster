@@ -34,6 +34,7 @@ Comprehensive checklist for auditing a web project. Work through each section sy
 ```
 - [ ] sitemap.xml exists and is valid XML
 - [ ] Only canonical URLs included (no redirects, no noindex pages)
+- [ ] After a URL rename, old URLs removed and new URLs added in the same commit
 - [ ] All important pages are included
 - [ ] <loc> uses absolute HTTPS URLs
 - [ ] <lastmod> dates reflect actual content changes
@@ -59,6 +60,8 @@ Comprehensive checklist for auditing a web project. Work through each section sy
 - [ ] Images have descriptive alt attributes
 - [ ] Images use modern formats (WebP/AVIF) with fallbacks
 - [ ] Images have explicit width/height attributes (prevents CLS)
+- [ ] Job/careers pages: one posting per URL, visible location + compensation, `validThrough` maintained
+- [ ] Application/form pages: indexation decided deliberately (indexable unique content, or `noindex` **and** out of the sitemap)
 ```
 
 ## 4. Open Graph & Social
@@ -84,6 +87,8 @@ Comprehensive checklist for auditing a web project. Work through each section sy
 - [ ] Organization schema on homepage (or about page)
 - [ ] BreadcrumbList on all inner pages
 - [ ] Content-specific schema per page type (Article, Product, FAQ, etc.)
+- [ ] `JobPosting` on careers pages (title, description, datePosted, hiringOrganization, and jobLocation or TELECOMMUTE + applicantLocationRequirements)
+- [ ] `JobPosting` has `validThrough`; closed roles are updated or removed
 - [ ] All required properties present (no Rich Results Test errors)
 - [ ] Recommended properties added where possible
 - [ ] Structured data matches visible page content
@@ -109,11 +114,25 @@ Comprehensive checklist for auditing a web project. Work through each section sy
 ```
 - [ ] All URLs are lowercase
 - [ ] Hyphens used between words (not underscores)
-- [ ] URLs are descriptive and keyword-relevant
+- [ ] URLs are descriptive and keyword-relevant (no developer-facing jargon in public slugs)
 - [ ] Max 3 directory levels from root
 - [ ] No unnecessary URL parameters
 - [ ] Consistent trailing slash convention
 - [ ] No duplicate content from URL variations (params, www, trailing slash)
+```
+
+### Renamed / moved URLs
+
+```
+- [ ] Permanent redirect (301/308) exists for every old path — not 302/307
+- [ ] One hop only (no redirect chains); destination is the closest equivalent page, not the homepage
+- [ ] Old path is NOT blocked in robots.txt (a blocked URL's redirect is never fetched)
+- [ ] Old URLs removed from the sitemap; new URLs added
+- [ ] Canonical on each moved page re-pointed to the new URL (circular canonicals de-index)
+- [ ] Internal links (nav, footer, breadcrumbs, in-body) updated to the new path
+- [ ] Backend/API paths deliberately left unchanged
+- [ ] Old path verified in production (curl -I) returns the permanent status and correct Location
+- [ ] Redirect is permanent, not scheduled for cleanup
 ```
 
 ## 8. Performance (Core Web Vitals)

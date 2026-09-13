@@ -35,6 +35,8 @@ Lessons learned from real projects, now built into the skill:
 - **Page titles that get cut off in Google.** Many modern websites automatically add your brand name to the end of every page title (e.g. "...| Your Company"). It's easy to forget that add-on counts toward the length limit, so titles end up too long and get chopped off in search results. The skill now checks the *final* title a visitor actually sees and trims it so nothing important is lost.
 - **Getting those nice expandable Q&A boxes in Google.** The "Frequently Asked Questions" drop-downs you sometimes see under a search result only show up if the questions and answers are actually visible on the page — not just hidden in the code. The skill now adds both at once, from a single list, so they always match and stay in sync.
 - **Telling search engines about updates, reliably.** There's a free way to instantly notify Bing, Yandex, and others that a page changed (called IndexNow). The skill now handles the common snags — like security filters that make it *look* like it failed when it actually worked — so updated pages get re-checked faster.
+- **Renaming a page without losing it.** Changing a URL (say `/referral` to `/jobs`) looks like renaming a file, but if the old address was in Google or linked from anywhere, the rename has to ship as one piece: a permanent redirect, the sitemap updated in the same change, internal links fixed, and every moved page's canonical pointing at its own new address. Miss the canonical and the page can quietly de-index itself. The skill now walks through the whole rename, and includes the "keep the API paths alone" rule — a page's address is a promise to search engines, an internal endpoint's is a promise to your own forms.
+- **Hiring pages that show up in Google Jobs.** A careers page needs `JobPosting` markup to appear in Google's job listings, with the job title, description, posting date and company, plus either a location or a clear "fully remote, applicants in X" statement. The skill also covers the trap: commission-only roles should **not** invent a salary figure for the "salary" field — that field means guaranteed base pay, so the comp plan belongs in the description instead.
 
 ## Search Engine Coverage
 
@@ -61,6 +63,7 @@ seo-master/
 ├── indexing-errors.md       # Google Search Console — all 22 indexing error types with fixes
 ├── technical-seo.md         # Crawling, rendering, meta directives, multi-engine robots.txt
 ├── structured-data.md       # JSON-LD implementation for all schema.org types
+├── url-migration.md         # Renaming/moving indexed URLs — redirect, sitemap, canonical, API-path rules
 ├── audit-checklist.md       # Comprehensive audit checklist (13 sections + monitoring)
 └── README.md
 ```

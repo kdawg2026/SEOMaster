@@ -224,6 +224,7 @@ Choose based on content type. For detailed implementation, see [structured-data.
 | Events | `Event` |
 | Recipes | `Recipe` |
 | Videos | `VideoObject` |
+| Job postings / careers pages | `JobPosting` |
 | Reviews | `Review`, `AggregateRating` |
 | Software/App | `SoftwareApplication` |
 
@@ -268,6 +269,42 @@ When a site has multiple pages eligible for FAQ (e.g. a data page and an educati
 - Every important page should be reachable within 3 clicks from homepage
 - Add breadcrumb navigation matching structured data
 - Check for orphan pages (no internal links pointing to them)
+- Check for naming that only the developer understands (`/referral` for a public jobs page) — it is cheap to fix **before** the URL is indexed and expensive afterwards
+
+### Renaming or moving an indexed URL
+
+The file move is the easy half. If the old URL is indexed, in the sitemap, or linked from
+anywhere, the rename is a migration and ships as one atomic change:
+
+1. **Permanent redirect** (301/308) for each old path → the new one, one hop, no chains,
+   no mass redirect to the homepage. In Next.js `redirects()`, `permanent: true` emits
+   **308** and `permanent: false` emits 307 — never ship a temporary redirect for a rename.
+2. **Keep the old path crawlable** — do not add it to `robots.txt`; a blocked URL's
+   redirect is never fetched.
+3. **Swap the sitemap** to the new URLs in the same commit (sitemaps list canonical URLs
+   only — a redirecting URL in a sitemap is self-inflicted "Page with redirect").
+4. **Update every internal link** — nav, footer, breadcrumbs, in-body links.
+5. **Re-point the canonical on each moved page.** Hard-coded absolute canonicals do not
+   follow a directory move; a moved page still canonicalising to the old URL is a circular
+   canonical and can de-index.
+6. **Leave API/backend paths alone.** Public page slugs are a contract with search engines;
+   `/api/...` paths are a contract with your own in-flight form posts. Renaming the page
+   does not require renaming the endpoint.
+7. **Keep the redirect forever** — it is what keeps other people's links working.
+
+Afterwards, expect the old URLs in GSC's **Page with redirect** bucket (valid, healthy —
+not an error to drive to zero) and request indexing for the **new** URLs. Per-path renames
+have no Change of Address tool; the redirect, sitemap and internal links are the whole
+signal. Full checklist and case study: [url-migration.md](url-migration.md).
+
+### Job and careers pages
+
+A public hiring page is a content page with its own rules: it needs `JobPosting` markup
+(required `title`, `description`, `datePosted`, `hiringOrganization`, and either
+`jobLocation` or `jobLocationType: "TELECOMMUTE"` + `applicantLocationRequirements`),
+one posting per URL, and a `validThrough` so a filled role stops advertising itself.
+Commission-only roles omit `baseSalary` rather than marking up a figure that is not
+guaranteed. See [structured-data.md](structured-data.md) → JobPosting.
 
 ## Step 6: Core Web Vitals
 
@@ -433,6 +470,7 @@ After applying fixes:
 8. Submit updated sitemap to all search engine webmaster tools (Google, Bing, Yandex, Baidu, Naver)
 9. Submit URL changes via IndexNow for Bing, Yandex, Naver, Seznam.cz
 10. Verify Applebot can access pages (check robots.txt fallback to Googlebot rules)
+11. For a renamed URL, `curl -I` the **old** path against production and confirm a permanent status (301/308) with the right `Location` — a local check does not prove the deployed redirect config or middleware
 
 ## Step 11: Post-Deploy Manual Actions
 
@@ -451,6 +489,7 @@ After pushing code fixes, the user/administrator MUST complete these steps manua
 3. **Request re-indexing of changed pages** (URL Inspection tool)
    - Paste each changed URL into the search bar, click "Request Indexing"
    - Prioritize: pages with new structured data, new/changed canonical, new meta tags
+   - For a **renamed** page, request the new URL only — the old URL's job is to redirect, and it will legitimately appear under "Page with redirect"
    - Rate limit: ~10 URLs per day max
 
 4. **Check Page Indexing report for existing errors**
@@ -523,4 +562,5 @@ When presenting post-deploy steps to the user, customize this template based on 
 - For technical crawling/rendering details: [technical-seo.md](technical-seo.md)
 - For CTR benchmarks, title formulas and rich-result guidance: [ctr-optimization.md](ctr-optimization.md)
 - For structured data implementation: [structured-data.md](structured-data.md)
+- For renaming or moving an indexed URL: [url-migration.md](url-migration.md)
 - For full audit checklist: [audit-checklist.md](audit-checklist.md)
