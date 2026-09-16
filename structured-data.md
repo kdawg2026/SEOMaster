@@ -45,6 +45,37 @@ Always use JSON-LD (Google recommended). Place in `<head>` or `<body>`.
 }
 ```
 
+### SiteNavigationElement (Homepage)
+
+Optional, but when you do add it, **every URL in it must be crawlable**. Schema that names a
+URL `robots.txt` disallows sets your own signals against each other: the crawler is told to
+stay away, the markup is told to go there.
+
+```json
+{
+  "@context": "https://schema.org",
+  "@type": "SiteNavigationElement",
+  "name": ["Dashboard", "Pricing", "Blog", "About"],
+  "url": [
+    "https://example.com",
+    "https://example.com/pricing",
+    "https://example.com/blog",
+    "https://example.com/about"
+  ]
+}
+```
+
+**Rules:**
+- Cross-check every `url` against `robots.txt` before shipping. A nav link whose target is
+  disallowed stays a human-only link and is deliberately **omitted** from the schema — do not
+  "complete" the list to match the visible navbar.
+- Keep the schema list and the sitemap consistent: what you want indexed is in both, what you
+  disallow is in neither.
+- Markup cannot make a disallowed URL rank. If a commercial page (pricing, plans, sign-up)
+  only exists under a disallowed path such as `/auth/`, move it to a crawlable URL — that is
+  the fix; listing it here is not.
+- Only list destinations a visitor can actually reach from the page.
+
 ### Organization
 
 ```json
@@ -565,6 +596,7 @@ Use JSON-LD format. Validate through Naver Search Advisor's built-in tools.
 11. Test with **Schema.org Validator** (validator.schema.org) for cross-engine validity
 12. Ensure data matches visible page content across all validators
 13. Monitor all webmaster tools for structured data warnings after deployment
+14. Diff every URL in navigation/breadcrumb schema against `robots.txt` — a disallowed URL must not appear in either
 
 ## Common Mistakes
 
@@ -580,4 +612,5 @@ Use JSON-LD format. Validate through Naver Search Advisor's built-in tools.
 | Misleading structured data | Bing may ignore and reduce trust; Google may issue manual action | Markup must accurately reflect visible content |
 | `JobPosting` left live after the role closed | Expired-job policy issue; rich result removal | Set `validThrough`, then update or remove the page |
 | Estimated or invented `baseSalary` | Inaccurate listings, trust/policy risk | Mark up the employer's actual figure, or omit it (commission-only roles) |
+| `SiteNavigationElement`/`BreadcrumbList` names a `robots.txt`-disallowed URL | The markup advertises a URL the crawler is told not to fetch — "Indexed, though blocked by robots.txt" noise and a wasted signal | Cross-check every schema URL against `robots.txt`; leave human-only links out of the schema |
 

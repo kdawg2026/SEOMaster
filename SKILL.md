@@ -142,6 +142,7 @@ Sitemap: https://example.com/sitemap.xml
 - `Disallow` does NOT prevent indexing — use `noindex` meta tag instead
 - Verify in Search Console: Settings > robots.txt report (the standalone robots.txt Tester tool was retired)
 - **AI crawlers**: Block training bots (`GPTBot`, `Google-Extended`, `ClaudeBot`, `CCBot`, etc.) while allowing AI search bots (`OAI-SearchBot`, `PerplexityBot`) that cite sources with links back. See [technical-seo.md → AI Crawler Management](technical-seo.md#ai-crawler-management-training-vs-search) for the full bot reference table and templates.
+- **Disallow and structured data must agree**: anything blocked here must also be absent from `SiteNavigationElement`/`BreadcrumbList` URLs and from the sitemap — never advertise to a crawler a URL this file tells it to skip (see Step 4).
 
 ### XML Sitemap
 
@@ -229,6 +230,8 @@ Choose based on content type. For detailed implementation, see [structured-data.
 | Software/App | `SoftwareApplication` |
 
 **Validation:** Test with Google Rich Results Test and Schema.org Validator.
+
+**Navigation schema must not name a URL robots.txt blocks.** A navbar link can legitimately point at a path you `Disallow` (a plan picker under `/auth/`, an internal tool), but that link must then stay **out** of `SiteNavigationElement` and `BreadcrumbList` — cross-check every schema URL against `robots.txt`, because markup that advertises a disallowed URL works against your own crawl rules. The schema list mirrors the *crawlable* navigation, not the visible navbar. And markup cannot rescue a page that needs to rank: if the only pricing/plans page lives under a disallowed path, give it a crawlable URL. See [structured-data.md → SiteNavigationElement](structured-data.md#sitenavigationelement-homepage).
 
 ### FAQPage — Visible-Content Requirement (Critical)
 

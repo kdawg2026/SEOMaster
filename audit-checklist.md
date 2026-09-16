@@ -21,6 +21,7 @@ Comprehensive checklist for auditing a web project. Work through each section sy
 - [ ] robots.txt does not block important pages
 - [ ] robots.txt does not block CSS/JS resources
 - [ ] robots.txt includes Sitemap directive
+- [ ] No URL is both `Disallow`ed and named in structured data / navigation schema
 - [ ] Googlebot can access all important pages (no auth/firewall blocks)
 - [ ] Server responds within 200ms for most pages
 - [ ] No redirect loops or long redirect chains
@@ -44,6 +45,7 @@ Comprehensive checklist for auditing a web project. Work through each section sy
 - [ ] Sitemap submitted to Bing Webmaster Tools
 - [ ] Sitemap submitted to Yandex Webmaster
 - [ ] Sitemap referenced in robots.txt
+- [ ] Sitemap and navigation schema list the same crawlable URLs — nothing disallowed appears in either
 ```
 
 ## 3. On-Page SEO (per page type)
@@ -92,6 +94,7 @@ Comprehensive checklist for auditing a web project. Work through each section sy
 - [ ] All required properties present (no Rich Results Test errors)
 - [ ] Recommended properties added where possible
 - [ ] Structured data matches visible page content
+- [ ] Every `url` in `SiteNavigationElement`/`BreadcrumbList` is allowed by robots.txt (human-only, disallowed links omitted)
 - [ ] Tested with Google Rich Results Test
 - [ ] Tested with Schema.org Validator
 ```
@@ -170,6 +173,7 @@ Comprehensive checklist for auditing a web project. Work through each section sy
 - [ ] HTTP to HTTPS redirect (301)
 - [ ] No mixed content (HTTP resources on HTTPS pages)
 - [ ] HSTS header present
+- [ ] Analytics/conversion tag hosts allowed in CSP `connect-src` as well as `script-src` (a load-only allow-list blocks the beacon silently)
 - [ ] Secure cookies (Secure, HttpOnly, SameSite flags)
 ```
 
@@ -265,6 +269,7 @@ Comprehensive checklist for auditing a web project. Work through each section sy
 - [ ] Fresh content (recent dates, updated information)
 - [ ] User-visible freshness claims ("last updated", date ranges, row counts) served live or via a single revalidation layer — stacked caches (ISR + unstable_cache on serverless/CDN) can pin them weeks stale
 - [ ] Dataset/source expansions reflected in a dated changelog or about entry (new source names are long-tail keywords; dated entries are freshness + E-E-A-T signals); resubmit sitemap / ping IndexNow after
+- [ ] Every advertised data date range is reachable from a named, documented endpoint; ranges spanning multiple sources carry their caveat in the data model, not only in the page copy (so an AI assistant quoting the same rows cannot overstate it)
 ```
 
 ## 13. Accessibility (SEO-relevant)

@@ -105,6 +105,7 @@ For Google, adjust crawl rate in Search Console settings.
 | Using robots.txt to hide pages | Pages can still appear in index (without snippet) | Use `noindex` instead |
 | Forgetting trailing slash | `/admin` matches `/administrator` too | Use `/admin/` for directories |
 | No Sitemap directive | Misses easy discovery signal | Add `Sitemap:` line |
+| A disallowed path also named in structured data or the sitemap | Crawler is given opposite instructions; the URL surfaces as "Indexed, though blocked by robots.txt" | Keep `Disallow`ed URLs out of `SiteNavigationElement`/`BreadcrumbList` and out of the sitemap |
 
 ### robots.txt Redirect Handling
 
@@ -725,4 +726,21 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 ```
 
 **Quick check:** If a page file starts with `"use client"` and also tries to `export const metadata`, Next.js will silently ignore the metadata — no build error, just no SEO. Always verify with View Page Source that meta tags appear in the initial HTML.
+
+## Analytics & Conversion Tags Under a Strict CSP
+
+A Content-Security-Policy has **two** directives that matter for every tracking tag, and whitelisting a host in only one of them breaks measurement silently:
+
+| Directive | Allows | Symptom when missing |
+|-----------|--------|----------------------|
+| `script-src` | the tag library itself to load | tag never appears — obvious in a network log |
+| `connect-src` | the tag to **send** its beacon (fetch/XHR/`sendBeacon`) | tag loads, reports healthy, data never arrives, nothing on the page explains it |
+
+Google Ads, GA4, Meta and X pixels all post to hosts that belong in `connect-src` — `googleadservices.com`, `www.google-analytics.com` / `region1.google-analytics.com`, `connect.facebook.net`, `analytics.twitter.com`. Listing them in `script-src` only is the common miss.
+
+**Checklist:**
+- Add each tag host to **both** `script-src` and `connect-src` (and `img-src` for image-pixel fallbacks such as Meta's).
+- One sale, one conversion. If GA4 `purchase` *and* a separate Ads conversion action are both configured, either fire the Ads action on the event the action is defined on and demote the GA4-imported action to secondary, or expect every sale counted twice. Share one `transaction_id` across destinations so a duplicate is discarded rather than double-counted.
+- The conversion event name belongs to the ad platform, not to you. A typo does not raise — it leaves the action at "no recent conversions" while the tag reports healthy, so keep the name in one constant carrying that warning.
+- Verify in a **real browser against a production build**: the served tag must carry the destination id, exactly one conversion must fire per purchase, and a refresh must not repeat it. Any synthetic purchase from a CI/verification script needs a flag that keeps it out of the live ad account.
 
